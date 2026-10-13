@@ -1,0 +1,45 @@
+# ==========================================
+# AI Skill Sense: Gitignore
+# ==========================================
+
+# Datasets (Synthetic JSON files, CSVs, raw data dumps)
+*.json
+!english_dictionary.json
+!classified_domains.json
+
+# Python Virtual Environments
+venv/
+env/
+ENV/
+.venv/
+
+# Python Cache & Compiled Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Model Checkpoints & Local Training Outputs
+/content/
+cleaning_model_local_output/
+cleaning_model_final_local/
+next_action_model_final_local/
+enhancement_model_output/
+*.ckpt
+*.safetensors
+*.bin
+
+# Environment Variables & Secrets
+.env
+.env.local
+hf_token.txt
+
+# OS Generated Files
+Thumbs.db
+.DS_Store
+
+# Colab Notebooks
+.ipynb_checkpoints/
+.ipynb_checkpoints
+*.ipynb

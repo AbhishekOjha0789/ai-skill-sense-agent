@@ -1,0 +1,18 @@
+# --- Hugging Face & ML Inference (For testing fine-tuned adapters locally) ---
+torch
+transformers
+peft
+accelerate
+safetensors
+datasets
+
+# --- Backend & Database Stack (FastAPI + PostgreSQL as per architecture specs) ---
+fastapi
+uvicorn
+pydantic
+sqlalchemy
+psycopg2-binary
+
+# --- Utilities & Environment Management ---
+requests
+python-dotenv
