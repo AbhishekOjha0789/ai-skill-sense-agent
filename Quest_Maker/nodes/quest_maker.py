@@ -33,6 +33,8 @@ def quest_maker(state: QuestMakerState) -> QuestMakerState:
     - scale must be one of: 'seconds', 'calories', 'others'.
     - quest_metrics should be a float value representing target goals.
     - quest_holder_id should initialize as an empty list [].
+    - duration should be time in seconds given to complete the quest.
+    - last_update should be the current timestamp in ISO 8601 format.
     """
 
   try:
@@ -77,6 +79,7 @@ def quest_maker(state: QuestMakerState) -> QuestMakerState:
                                     "type": "ARRAY",
                                     "items": {"type": "STRING"},
                                 },
+                                "duration": {"type": "INTEGER"},
                             },
                             "required": [
                                 "quest_id",
@@ -90,6 +93,7 @@ def quest_maker(state: QuestMakerState) -> QuestMakerState:
                                 "template",
                                 "last_update",
                                 "quest_holder_id",
+                                "duration",
                             ],
                         },
                     }
