@@ -1,9 +1,12 @@
+import os
 import requests
 from bs4 import BeautifulSoup
 from state import AgentState
 
-# Configure your backend API base URL (update as needed for deployment)
-BACKEND_API_URL = "https://your-backend-api.com"
+# Fetch backend URL from environment with a fallback default
+BACKEND_API_URL = os.environ.get(
+    "BACKEND_API_URL", "https://your-backend-api.com"
+)
 
 def web_crawler(state: AgentState) -> AgentState:
     print("--- WEB CRAWLER: Scraping and filtering web page content ---")
@@ -37,7 +40,7 @@ def web_crawler(state: AgentState) -> AgentState:
                     res = requests.post(
                         f"{BACKEND_API_URL}/api/urls/get-id",
                         json={"url": d_url},
-                        timeout=3
+                        timeout=40
                     )
                     if res.status_code in [200, 201]:
                         print(f"Synced discovered URL with backend: {d_url}")

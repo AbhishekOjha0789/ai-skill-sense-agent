@@ -1,6 +1,11 @@
+import os
+from dotenv import load_dotenv
 from typing import Any, Dict, Optional
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+  
+# Load environment variables
+load_dotenv()
 
 # Import your agent workflows
 from Extractor.workflow import create_extractor_workflow

@@ -1,5 +1,11 @@
+import os
 import requests
 from state import MainAgentState
+
+# Define base backend URL from environment with a fallback default
+BACKEND_API_URL = os.environ.get(
+    "BACKEND_API_URL", "https://your-backend-api.com"
+)
 
 def skill_allocator(state: MainAgentState) -> MainAgentState:
     print("--- SKILL ALLOCATOR: Finding candidate skills from DataPool ---")
@@ -13,12 +19,13 @@ def skill_allocator(state: MainAgentState) -> MainAgentState:
     
     try:
         response = requests.post(
-            "https://your-backend-api.com/api/datapool/skills/allocate",
+            f"{BACKEND_API_URL}/api/datapool/skills/allocate",
             json={
                 "keywords": keywords,
                 "excluded_skill_ids": list(existing_skills),
-                "limit": 5  # Requesting top 5 matches
-            }
+                "limit": 5,  # Requesting top 5 matches
+            },
+            timeout=40,
         )
         
         if response.status_code == 200:

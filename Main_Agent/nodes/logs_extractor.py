@@ -1,5 +1,11 @@
+import os
 import requests
 from state import MainAgentState
+
+# Define base backend URL from environment with a fallback default
+BACKEND_API_URL = os.environ.get(
+    "BACKEND_API_URL", "https://your-backend-api.com"
+)
 
 def logs_extractor(state: MainAgentState) -> MainAgentState:
     print("--- LOGS EXTRACTOR: Fetching latest 25 user logs ---")
@@ -12,8 +18,9 @@ def logs_extractor(state: MainAgentState) -> MainAgentState:
     try:
         # Request recent logs from your FastAPI backend with a limit of 25
         response = requests.get(
-            f"https://your-backend-api.com/api/users/{user_id}/logs",
-            params={"limit": 25}
+            f"{BACKEND_API_URL}/api/users/{user_id}/logs",
+            params={"limit": 25},
+            timeout=30,
         )
         
         if response.status_code == 200:

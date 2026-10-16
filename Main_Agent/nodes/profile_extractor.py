@@ -1,5 +1,11 @@
+import os
 import requests
 from state import MainAgentState
+
+# Define base backend URL from environment with a fallback default
+BACKEND_API_URL = os.environ.get(
+    "BACKEND_API_URL", "https://your-backend-api.com"
+)
 
 def profile_extractor(state: MainAgentState) -> MainAgentState:
     print("--- PROFILE EXTRACTOR: Fetching comprehensive user profile ---")
@@ -12,7 +18,7 @@ def profile_extractor(state: MainAgentState) -> MainAgentState:
     try:
         # Request user profile from your FastAPI backend using the defined schema
         response = requests.get(
-            f"https://your-backend-api.com/api/users/{user_id}/profile"
+            f"{BACKEND_API_URL}/api/users/{user_id}/profile", timeout=30
         )
         
         if response.status_code == 200:

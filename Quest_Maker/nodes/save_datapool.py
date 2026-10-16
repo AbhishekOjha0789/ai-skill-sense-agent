@@ -1,5 +1,10 @@
+import os
 import requests
 from state import QuestMakerState
+
+BACKEND_API_URL = os.environ.get(
+    "BACKEND_API_URL", "https://your-backend-api.com"
+)
 
 
 def save_datapool(state: QuestMakerState) -> QuestMakerState:
@@ -17,11 +22,15 @@ def save_datapool(state: QuestMakerState) -> QuestMakerState:
     )
 
     # Dummy backend URL (can be changed later)
-    backend_url = "https://your-backend-api.com/api/datapool/quests/create"
+    backend_url = f"{BACKEND_API_URL}/api/datapool/quests/create"
 
     try:
       # In production, send POST request for the single quest
-      response = requests.post(backend_url, json=current_quest)
+      response = requests.post(
+        backend_url,
+        json=current_quest,  # Or your payload dictionary
+        timeout=40,
+    )
       response.raise_for_status()
       print(f"[*] Quest saved successfully: {current_quest.get('quest_name')}")
       
