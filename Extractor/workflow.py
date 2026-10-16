@@ -3,8 +3,8 @@ from langgraph.graph import StateGraph, END
 from state import AgentState
 
 # Import all modular nodes
-from .nodes.link_lister import link_lister
-from .nodes.url_list import url_list
+# from .nodes.link_lister import link_lister
+# from .nodes.url_list import url_list
 from .nodes.classifier import classifier
 from .nodes.image_crawler import image_crawler
 from .nodes.audio_crawler import audio_crawler
@@ -15,11 +15,11 @@ from .nodes.duplicate_detector import duplicate_detector
 from .nodes.skill_enhancement import skill_enhancement
 from .nodes.datapool import datapool
 
-def route_after_link_lister(state: AgentState) -> str:
-    """Route based on whether the URL has already been visited."""
-    if state.get("is_visited") == "Yes":
-        return "end"
-    return "url_list"
+# def route_after_link_lister(state: AgentState) -> str:
+#     """Route based on whether the URL has already been visited."""
+#     if state.get("is_visited") == "Yes":
+#         return "end"
+#     return "url_list"
 
 def route_by_type(state: AgentState) -> str:
     """Route to the appropriate crawler based on content type classification."""
@@ -41,8 +41,8 @@ def build_workflow():
     workflow = StateGraph(AgentState)
     
     # 1. Register all nodes in the graph
-    workflow.add_node("link_lister", link_lister)
-    workflow.add_node("url_list", url_list)
+    # workflow.add_node("link_lister", link_lister)
+    # workflow.add_node("url_list", url_list)
     workflow.add_node("classifier", classifier)
     workflow.add_node("image_crawler", image_crawler)
     workflow.add_node("audio_crawler", audio_crawler)
@@ -54,19 +54,19 @@ def build_workflow():
     workflow.add_node("datapool", datapool)
     
     # 2. Set the starting entry point
-    workflow.set_entry_point("link_lister")
+    workflow.set_entry_point("classifier")
     
     # 3. Define conditional and linear edges
-    workflow.add_conditional_edges(
-        "link_lister",
-        route_after_link_lister,
-        {
-            "url_list": "url_list",
-            "end": END
-        }
-    )
+    # workflow.add_conditional_edges(
+    #     "link_lister",
+    #     route_after_link_lister,
+    #     {
+    #         "url_list": "url_list",
+    #         "end": END
+    #     }
+    # )
     
-    workflow.add_edge("url_list", "classifier")
+    # workflow.add_edge("url_list", "classifier")
     
     workflow.add_conditional_edges(
         "classifier",

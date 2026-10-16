@@ -3,8 +3,8 @@ from pydantic import BaseModel
 from typing import Optional, Dict, Any
 
 # Import your agent workflows as you build them
-# from agents.Main_Agent.workflow import create_main_agent_workflow
-# from agents.Extractor.workflow import create_extractor_workflow
+from Main_Agent.workflow import create_main_agent_workflow
+from Extractor.workflow import create_extractor_workflow
 # from agents.Quality_Analyzer.workflow import create_quality_analyzer_workflow
 
 app = FastAPI(title="AI Skill Sense Agents API", version="1.0")
@@ -14,6 +14,12 @@ class MainAgentPayload(BaseModel):
     update_id: str
     user_id: str
     action_required: str  # "Yes" or "No"
+
+# Payload schema for Extractor workflow triggers
+class ExtractorPayload(BaseModel):
+    url_id: str
+    url: str
+    is_visited: str  # "Yes" or "No"
 
 @app.get("/")
 async def root():
@@ -38,8 +44,8 @@ async def trigger_main_agent(payload: MainAgentPayload):
             "report_id": None
         }
 
-        # workflow = create_main_agent_workflow()
-        # result = workflow.invoke(initial_state)
+        workflow = create_main_agent_workflow()
+        result = workflow.invoke(initial_state)
 
         return {
             "status": "success",
@@ -50,4 +56,41 @@ async def trigger_main_agent(payload: MainAgentPayload):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# You can add similar endpoints for Extractor or Quality Analyzer here in the future
+@app.post("/agents/extractor/trigger")
+async def trigger_extractor(payload: ExtractorPayload):
+    """
+    Receives unvisited URL info (url_id, url, is_visited: 'No') from the main backend 
+    to kick off the Extractor workflow (Link Lister -> Classifier -> Crawlers -> Skill Maker).
+    """
+    try:
+        # Check if URL has already been visited based on the schema flag
+        if payload.is_visited.lower() == "yes":
+            return {
+                "status": "skipped",
+                "message": f"URL {payload.url} has already been visited.",
+                "payload": payload.dict()
+            }
+
+        initial_extractor_state = {
+            "url_id": payload.url_id,
+            "url": payload.url,
+            "is_visited": payload.is_visited,
+            "type": None,
+            "cleaned": None,
+            "duplicate": None,
+            "content": None,
+            "content_id": None,
+            "matching_skill_id": None
+        }
+
+        workflow = create_extractor_workflow()
+        result = workflow.invoke(initial_extractor_state)
+
+        return {
+            "status": "success",
+            "message": f"Extractor workflow initiated for URL ID: {payload.url_id} ({payload.url})",
+            "payload": payload.dict()
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
