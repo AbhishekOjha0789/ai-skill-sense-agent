@@ -35,7 +35,7 @@ def next_action_model(state: MainAgentState) -> MainAgentState:
 
     try:
         # Initialize the Gradio client for your space
-        client = Client("AO0789/ai-skill-sense-engine", hf_token=hf_token)
+        client = Client("AO0789/ai-skill-sense-engine", token=hf_token)
         
         # Call the specific endpoint matching your Gradio space definition
         result_str = client.predict(

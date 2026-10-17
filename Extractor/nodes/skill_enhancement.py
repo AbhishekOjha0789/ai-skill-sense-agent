@@ -36,7 +36,7 @@ def skill_enhancement(state: AgentState) -> AgentState:
         "new_skill_candidate": json.loads(new_skill_content),
     }
 
-    client = Client("AO0789/ai-skill-sense-engine", hf_token=hf_token)
+    client = Client("AO0789/ai-skill-sense-engine", token=hf_token)
     result_str = client.predict(
         text=json.dumps(cluster_payload),
         api_name="/run_enhancement",

@@ -15,7 +15,7 @@ def cleaning_model(state: AgentState) -> AgentState:
     
     try:
         # Initialize the Gradio client for your space
-        client = Client("AO0789/ai-skill-sense-engine", hf_token=hf_token)
+        client = Client("AO0789/ai-skill-sense-engine", token=hf_token)
         
         # Call the specific cleaning endpoint
         result_str = client.predict(
