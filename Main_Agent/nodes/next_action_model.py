@@ -1,7 +1,7 @@
 import json
 import os
 from gradio_client import Client
-from state import MainAgentState
+from ..state import MainAgentState
 
 def next_action_model(state: MainAgentState) -> MainAgentState:
     print("--- NEXT ACTION MODEL: Calling Gradio client API on Hugging Face ---")

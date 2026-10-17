@@ -15,3 +15,4 @@ class MainAgentState(TypedDict):
     best_match: Optional[str]       # skill_id or quest_id
     quality_status: Optional[str]   # 'Yes' or 'No'
     report_id: Optional[str]
+    assignment_status: Optional[str]

@@ -1,16 +1,19 @@
 import os
 import requests
 from bs4 import BeautifulSoup
-from state import AgentState
+from ..state import AgentState
 
-# Fetch backend URL from environment with a fallback default
-BACKEND_API_URL = os.environ.get(
-    "BACKEND_API_URL", "https://your-backend-api.com"
-)
+# Fetch backend URL and agent secret from environment
+BACKEND_API_URL = os.environ.get("BACKEND_API_URL")
+AGENT_SECRET_KEY = os.environ.get("AGENT_SECRET_KEY")
 
 def web_crawler(state: AgentState) -> AgentState:
     print("--- WEB CRAWLER: Scraping and filtering web page content ---")
     target_url = state.get("url")
+    if not BACKEND_API_URL:
+        raise RuntimeError("BACKEND_API_URL environment variable is missing.")
+    if not AGENT_SECRET_KEY:
+        raise RuntimeError("AGENT_SECRET_KEY environment variable is missing.")
     
     extracted_content = ""
     discovered_urls = []
@@ -24,7 +27,7 @@ def web_crawler(state: AgentState) -> AgentState:
         if response.status_code == 200:
             soup = BeautifulSoup(response.text, 'html.parser')
             
-            # --- NEW FEATURE: Extract all valid links from the page ---
+            # --- Extract all valid links from the page ---
             for link in soup.find_all('a', href=True):
                 href = link['href']
                 if href.startswith('http://') or href.startswith('https://'):
@@ -33,19 +36,23 @@ def web_crawler(state: AgentState) -> AgentState:
             # Deduplicate discovered URLs
             unique_discovered_urls = list(set(discovered_urls))
             
-            # Send discovered URLs to the backend to check/add them to the database
+            # Send discovered URLs to the backend with the internal agent secret header
+            crawler_headers = {"X-Agent-Secret": AGENT_SECRET_KEY}
+
             for d_url in unique_discovered_urls:
                 try:
-                    # Calls backend API endpoint to look up or register the URL record ID
                     res = requests.post(
                         f"{BACKEND_API_URL}/api/urls/get-id",
                         json={"url": d_url},
-                        timeout=40
+                        headers=crawler_headers,
+                        timeout=40,
                     )
-                    if res.status_code in [200, 201]:
-                        print(f"Synced discovered URL with backend: {d_url}")
+                    res.raise_for_status()
+                    print(f"Synced discovered URL with backend: {d_url}")
                 except Exception as backend_err:
-                    print(f"Warning: Could not sync URL {d_url} to backend: {backend_err}")
+                    raise RuntimeError(
+                        f"Could not sync discovered URL {d_url} to backend."
+                    ) from backend_err
             
             # Remove common non-content elements to reduce noise
             for element in soup(["script", "style", "nav", "footer", "header", "aside"]):
@@ -57,13 +64,14 @@ def web_crawler(state: AgentState) -> AgentState:
             if text_elements:
                 extracted_content = "\n".join([elem.get_text(strip=True) for elem in text_elements if elem.get_text(strip=True)])
             else:
-                # Fallback to general body text if specific tags aren't found
                 extracted_content = soup.get_text(separator='\n', strip=True)
                 
             print("Successfully crawled and extracted web content.")
         else:
             extracted_content = f"Failed to retrieve web page. Status code: {response.status_code}"
             
+    except RuntimeError:
+        raise
     except Exception as e:
         print(f"Error during web crawling: {e}")
         extracted_content = "Error processing web content extraction."

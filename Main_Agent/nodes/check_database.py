@@ -1,4 +1,4 @@
-from state import MainAgentState
+from ..state import MainAgentState
 
 def check_database_updates(state: MainAgentState) -> MainAgentState:
     print(f"--- AGENT TRIGGERED: Processing Update ID: {state.get('update_id')} for User ID: {state.get('user_id')} ---")

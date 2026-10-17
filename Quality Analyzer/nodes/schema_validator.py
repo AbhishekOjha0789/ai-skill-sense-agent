@@ -1,5 +1,5 @@
 # Quality Analyzer/nodes/schema_validator.py
-from state import QualityAnalysisState
+from ..state import QualityAnalysisState
 
 def schema_validator(state: QualityAnalysisState) -> QualityAnalysisState:
     """Validates content against expected schema."""

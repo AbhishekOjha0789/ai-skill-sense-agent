@@ -1,4 +1,4 @@
-from state import MainAgentState
+from ..state import MainAgentState
 
 def quality_checking_model(state: MainAgentState) -> MainAgentState:
     print("--- QUALITY CHECKING MODEL: Validating output quality ---")

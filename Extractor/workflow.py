@@ -1,6 +1,6 @@
 # workflow.py
 from langgraph.graph import StateGraph, END
-from state import AgentState
+from .state import AgentState
 
 # Import all modular nodes
 # from .nodes.link_lister import link_lister
@@ -37,7 +37,7 @@ def route_by_duplicate(state: AgentState) -> str:
         return "skill_enhancement"
     return "datapool"
 
-def build_workflow():
+def create_extractor_workflow():
     workflow = StateGraph(AgentState)
     
     # 1. Register all nodes in the graph
@@ -102,5 +102,8 @@ def build_workflow():
     
     return workflow.compile()
 
+
+build_workflow = create_extractor_workflow
+
 # Compiled application ready to be invoked or served via FastAPI
-app_workflow = build_workflow()
+app_workflow = create_extractor_workflow()

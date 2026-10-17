@@ -1,5 +1,5 @@
 # Quality Analyzer/nodes/content_analyzer.py
-from state import QualityAnalysisState
+from ..state import QualityAnalysisState
 
 def content_analyzer(state: QualityAnalysisState) -> QualityAnalysisState:
     """Analyzes content for depth, length, and relevance."""

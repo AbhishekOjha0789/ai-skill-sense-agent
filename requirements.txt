@@ -10,8 +10,15 @@ datasets
 fastapi
 uvicorn
 pydantic
+langgraph
 sqlalchemy
 psycopg2-binary
+gradio_client
+google-genai
+beautifulsoup4
+Pillow
+pytesseract
+openai-whisper
 
 # --- Utilities & Environment Management ---
 requests

@@ -1,48 +1,42 @@
 import os
 import requests
-from state import MainAgentState
+from ..state import MainAgentState
 
 # Define base backend URL from environment with a fallback default
-BACKEND_API_URL = os.environ.get(
-    "BACKEND_API_URL", "https://your-backend-api.com"
-)
+BACKEND_API_URL = os.environ.get("BACKEND_API_URL")
+
+AGENT_SECRET_KEY = os.environ.get("AGENT_SECRET_KEY")
 
 def logs_extractor(state: MainAgentState) -> MainAgentState:
     print("--- LOGS EXTRACTOR: Fetching latest 25 user logs ---")
     user_id = state.get("user_id")
     
     if not user_id:
-        print("Error: No user_id found in state.")
-        return {"logs": []}
+        raise ValueError("No user_id found in Main Agent state.")
 
-    try:
-        # Request recent logs from your FastAPI backend with a limit of 25
-        response = requests.get(
-            f"{BACKEND_API_URL}/api/users/{user_id}/logs",
-            params={"limit": 25},
-            timeout=30,
-        )
-        
-        if response.status_code == 200:
-            logs_data = response.json()
-            
-            # Map each log based on your exact schema:
-            # - user_id, log_id, log_desc, action_required ('Yes'/'No'), timestamp (ISO-8601)[cite: 8]
-            formatted_logs = []
-            for log in logs_data.get("logs", []):
-                formatted_logs.append({
-                    "user_id": log.get("user_id"),
-                    "log_id": log.get("log_id"),
-                    "log_desc": log.get("log_desc"),
-                    "action_required": log.get("action_required"),
-                    "timestamp": log.get("timestamp")
-                })
-                
-            return {"logs": formatted_logs}
-        else:
-            print(f"Failed to fetch logs. Status code: {response.status_code}")
-            
-    except Exception as e:
-        print(f"Error communicating with backend API for log extraction: {e}")
-        
-    return {"logs": []}
+    if not BACKEND_API_URL:
+        raise RuntimeError("BACKEND_API_URL environment variable is missing.")
+    if not AGENT_SECRET_KEY:
+        raise RuntimeError("AGENT_SECRET_KEY environment variable is missing.")
+
+    response = requests.get(
+        f"{BACKEND_API_URL.rstrip('/')}/api/users/{user_id}/logs",
+        params={"limit": 25},
+        headers={"X-Agent-Secret": AGENT_SECRET_KEY},
+        timeout=30,
+    )
+    response.raise_for_status()
+    logs_data = response.json()
+
+    return {
+        "logs": [
+            {
+                "user_id": log.get("user_id"),
+                "log_id": log.get("log_id"),
+                "log_desc": log.get("log_desc"),
+                "action_required": log.get("action_required"),
+                "timestamp": log.get("timestamp"),
+            }
+            for log in logs_data.get("logs", [])
+        ]
+    }

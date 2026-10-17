@@ -1,17 +1,22 @@
 import os
 import requests
-from state import MainAgentState
+from ..state import MainAgentState
 
 # Define base backend URL from environment with a fallback default
-BACKEND_API_URL = os.environ.get(
-    "BACKEND_API_URL", "https://your-backend-api.com"
-)
+BACKEND_API_URL = os.environ.get("BACKEND_API_URL")
+
+AGENT_SECRET_KEY = os.environ.get("AGENT_SECRET_KEY")
 
 def skill_allocator(state: MainAgentState) -> MainAgentState:
     print("--- SKILL ALLOCATOR: Finding candidate skills from DataPool ---")
     
     if state.get("action") != "Skill":
         return state
+
+    if not AGENT_SECRET_KEY:
+        raise RuntimeError("AGENT_SECRET_KEY environment variable is missing.")
+    if not BACKEND_API_URL:
+        raise RuntimeError("BACKEND_API_URL environment variable is missing.")
 
     keywords = state.get("keywords", [])
     profile = state.get("profile", {})
@@ -25,17 +30,12 @@ def skill_allocator(state: MainAgentState) -> MainAgentState:
                 "excluded_skill_ids": list(existing_skills),
                 "limit": 5,  # Requesting top 5 matches
             },
+            headers={"X-Agent-Secret": AGENT_SECRET_KEY},
             timeout=40,
         )
         
-        if response.status_code == 200:
-            data = response.json()
-            # Returns the top matching skill IDs and details for the filter/best match pipeline[cite: 2, 9]
-            return {
-                "skill_ids": data.get("skill_ids", [])[:5],
-            }
-            
-    except Exception as e:
-        print(f"Error communicating with DataPool skill allocation API: {e}")
-        
-    return {"skill_ids": []}
+        response.raise_for_status()
+        data = response.json()
+        return {"skill_ids": data.get("skill_ids", [])[:5]}
+    except requests.RequestException as exc:
+        raise RuntimeError("Skill allocation request to backend failed.") from exc

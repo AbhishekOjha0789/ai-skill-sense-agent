@@ -3,7 +3,7 @@ import os
 import json
 from google import genai
 from google.genai import types
-from state import AgentState
+from ..state import AgentState
 
 def skill_maker(state: AgentState) -> AgentState:
     print("--- SKILL MAKER: Generating skill candidate via Gemini 3.5 Flash ---")

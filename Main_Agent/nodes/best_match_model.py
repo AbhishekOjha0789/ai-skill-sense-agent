@@ -1,4 +1,4 @@
-from state import MainAgentState
+from ..state import MainAgentState
 
 def best_match_model(state: MainAgentState) -> MainAgentState:
     print("--- BEST MATCH MODEL: Running custom mathematical evaluation ---")

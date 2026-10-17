@@ -1,5 +1,5 @@
 # nodes/classifier.py
-from state import AgentState
+from ..state import AgentState
 
 def classifier(state: AgentState) -> AgentState:
     print("--- CLASSIFIER: Determining file/content type ---")

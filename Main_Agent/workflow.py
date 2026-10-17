@@ -1,15 +1,24 @@
 from langgraph.graph import StateGraph, END
-from state import MainAgentState
+from .state import MainAgentState
 
 # Import all individual modular nodes
-from nodes.check_database import check_database_updates
-from nodes.profile_extractor import profile_extractor
-from nodes.logs_extractor import logs_extractor
-from nodes.next_action_model import next_action_model
-from nodes.skill_allocator import skill_allocator
-from nodes.quest_allocator import quest_allocator
-from nodes.best_match_model import best_match_model
-from nodes.quality_checking_model import quality_checking_model
+from .nodes.check_database import check_database_updates
+from .nodes.profile_extractor import profile_extractor
+from .nodes.logs_extractor import logs_extractor
+from .nodes.next_action_model import next_action_model
+from .nodes.skill_allocator import skill_allocator
+from .nodes.quest_allocator import quest_allocator
+from .nodes.best_match_model import best_match_model
+from .nodes.quality_checking_model import quality_checking_model
+from .nodes.save_assignment import save_assignment
+
+
+def route_after_quality_check(state: MainAgentState) -> str:
+    if state.get("quality_status") != "Yes":
+        return "retry"
+    if state.get("best_match"):
+        return "save"
+    return "end"
 
 def create_main_agent_workflow():
     workflow = StateGraph(MainAgentState)
@@ -23,6 +32,7 @@ def create_main_agent_workflow():
     workflow.add_node("quest_allocator", quest_allocator)
     workflow.add_node("best_match_model", best_match_model)
     workflow.add_node("quality_checking_model", quality_checking_model)
+    workflow.add_node("save_assignment", save_assignment)
 
     # 2. Define Entry Point and Edges
     workflow.set_entry_point("db_check")
@@ -60,11 +70,13 @@ def create_main_agent_workflow():
     # Quality check evaluation loop[cite: 2]
     workflow.add_conditional_edges(
         "quality_checking_model",
-        lambda s: "save" if s.get("quality_status") == "Yes" else "retry",
+        route_after_quality_check,
         {
-            "save": END,
-            "retry": "best_match_model"
+            "save": "save_assignment",
+            "retry": "best_match_model",
+            "end": END,
         }
     )
+    workflow.add_edge("save_assignment", END)
 
     return workflow.compile()

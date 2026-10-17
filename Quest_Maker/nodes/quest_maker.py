@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 from google import genai
 from google.genai import types
-from state import QuestMakerState
+from ..state import QuestMakerState
 
 
 def quest_maker(state: QuestMakerState) -> QuestMakerState:
@@ -112,4 +112,4 @@ def quest_maker(state: QuestMakerState) -> QuestMakerState:
 
   except Exception as e:
     print(f"Error generating quests via Gemini API: {e}")
-    return {"error": str(e)}
+    raise RuntimeError("Quest generation failed.") from e

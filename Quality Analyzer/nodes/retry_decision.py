@@ -1,5 +1,5 @@
 # Quality Analyzer/nodes/retry_decision.py
-from state import QualityAnalysisState
+from ..state import QualityAnalysisState
 
 def retry_decision(state: QualityAnalysisState) -> QualityAnalysisState:
     """Determines if retry is required and recommends action."""

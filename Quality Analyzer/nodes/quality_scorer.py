@@ -1,5 +1,5 @@
 # Quality Analyzer/nodes/quality_scorer.py
-from state import QualityAnalysisState
+from ..state import QualityAnalysisState
 
 def quality_scorer(state: QualityAnalysisState) -> QualityAnalysisState:
     """Calculates weighted quality score."""

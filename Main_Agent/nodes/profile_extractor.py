@@ -1,56 +1,48 @@
 import os
 import requests
-from state import MainAgentState
+from ..state import MainAgentState
 
 # Define base backend URL from environment with a fallback default
-BACKEND_API_URL = os.environ.get(
-    "BACKEND_API_URL", "https://your-backend-api.com"
-)
+BACKEND_API_URL = os.environ.get("BACKEND_API_URL")
+
+AGENT_SECRET_KEY = os.environ.get("AGENT_SECRET_KEY")
 
 def profile_extractor(state: MainAgentState) -> MainAgentState:
     print("--- PROFILE EXTRACTOR: Fetching comprehensive user profile ---")
     user_id = state.get("user_id")
     
     if not user_id:
-        print("Error: No user_id found in state.")
-        return {"profile": {}}
+        raise ValueError("No user_id found in Main Agent state.")
 
-    try:
-        # Request user profile from your FastAPI backend using the defined schema
-        response = requests.get(
-            f"{BACKEND_API_URL}/api/users/{user_id}/profile", timeout=30
-        )
-        
-        if response.status_code == 200:
-            profile_data = response.json()
-            
-            # Mapping profile data based on your schema structure:
-            # - Required fields: user_id, username, email, age, gender, interests, skills, active_quests, completed_quest, failed_quests, summary[cite: 8]
-            # - Optional fields: occupation, experience, education_status, education_summary[cite: 8]
-            
-            return {
-                "profile": {
-                    "user_id": profile_data.get("user_id"),
-                    "username": profile_data.get("username"),
-                    "email": profile_data.get("email"),
-                    "age": profile_data.get("age"),
-                    "gender": profile_data.get("gender"),
-                    "interests": profile_data.get("interests", []),
-                    "skills": profile_data.get("skills", []),
-                    "active_quests": profile_data.get("active_quests", []),
-                    "completed_quest": profile_data.get("completed_quest", []),
-                    "failed_quests": profile_data.get("failed_quests", []),
-                    "summary": profile_data.get("summary", ""),
-                    "occupation": profile_data.get("occupation"),
-                    "experience": profile_data.get("experience"),
-                    "education_status": profile_data.get("education_status"),
-                    "education_summary": profile_data.get("education_summary")
-                }
-            }
-        else:
-            print(f"Failed to fetch profile. Status code: {response.status_code}")
-            
-    except Exception as e:
-        print(f"Error communicating with backend API for profile extraction: {e}")
-        
-    return {"profile": {}}
+    if not BACKEND_API_URL:
+        raise RuntimeError("BACKEND_API_URL environment variable is missing.")
+    if not AGENT_SECRET_KEY:
+        raise RuntimeError("AGENT_SECRET_KEY environment variable is missing.")
+
+    response = requests.get(
+        f"{BACKEND_API_URL.rstrip('/')}/api/users/{user_id}/profile",
+        headers={"X-Agent-Secret": AGENT_SECRET_KEY},
+        timeout=30,
+    )
+    response.raise_for_status()
+    profile_data = response.json()
+
+    return {
+        "profile": {
+            "user_id": profile_data.get("user_id"),
+            "username": profile_data.get("username"),
+            "email": profile_data.get("email"),
+            "age": profile_data.get("age"),
+            "gender": profile_data.get("gender"),
+            "interests": profile_data.get("interests", []),
+            "skills": profile_data.get("skills", []),
+            "active_quests": profile_data.get("active_quests", []),
+            "completed_quest": profile_data.get("completed_quest", []),
+            "failed_quests": profile_data.get("failed_quests", []),
+            "summary": profile_data.get("summary", ""),
+            "occupation": profile_data.get("occupation"),
+            "experience": profile_data.get("experience"),
+            "education_status": profile_data.get("education_status"),
+            "education_summary": profile_data.get("education_summary"),
+        }
+    }

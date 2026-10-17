@@ -1,5 +1,5 @@
 # Quality Analyzer/nodes/feedback_generator.py
-from state import QualityAnalysisState
+from ..state import QualityAnalysisState
 
 def feedback_generator(state: QualityAnalysisState) -> QualityAnalysisState:
     """Generates human-readable feedback and suggestions."""

@@ -1,9 +1,7 @@
 # nodes/audio_crawler.py
 import os
 import requests
-whisper = None # Lazy import or local load representation
-import whisper
-from state import AgentState
+from ..state import AgentState
 
 def audio_crawler(state: AgentState) -> AgentState:
     print("--- AUDIO CRAWLER: Transcribing audio using Speech-to-Text (Whisper) ---")
@@ -20,6 +18,8 @@ def audio_crawler(state: AgentState) -> AgentState:
                 f.write(response.content)
                 
             # 2. Load Whisper model (e.g., 'base' or 'small' model) and transcribe
+            import whisper
+
             model = whisper.load_model("base")
             result = model.transcribe(temp_audio_path)
             transcript = result.get("text", "")

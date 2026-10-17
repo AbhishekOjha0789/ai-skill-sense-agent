@@ -2,7 +2,7 @@
 import json
 import os
 from gradio_client import Client
-from state import AgentState
+from ..state import AgentState
 
 def cleaning_model(state: AgentState) -> AgentState:
     print("--- CLEANING MODEL: Calling Gradio client API on Hugging Face ---")

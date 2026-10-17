@@ -3,7 +3,7 @@ import requests
 from io import BytesIO
 from PIL import Image
 import pytesseract
-from state import AgentState
+from ..state import AgentState
 
 def image_crawler(state: AgentState) -> AgentState:
     print("--- IMAGE CRAWLER: Extracting text from image (OCR) ---")
