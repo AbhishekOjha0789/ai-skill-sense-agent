@@ -11,6 +11,7 @@ from .nodes.quest_allocator import quest_allocator
 from .nodes.best_match_model import best_match_model
 from .nodes.quality_checking_model import quality_checking_model
 from .nodes.save_assignment import save_assignment
+from workflow_logging import with_schema_logging
 
 
 def route_after_quality_check(state: MainAgentState) -> str:
@@ -24,15 +25,15 @@ def create_main_agent_workflow():
     workflow = StateGraph(MainAgentState)
 
     # 1. Add Nodes
-    workflow.add_node("db_check", check_database_updates)
-    workflow.add_node("profile_extractor", profile_extractor)
-    workflow.add_node("logs_extractor", logs_extractor)
-    workflow.add_node("next_action_model", next_action_model)
-    workflow.add_node("skill_allocator", skill_allocator)
-    workflow.add_node("quest_allocator", quest_allocator)
-    workflow.add_node("best_match_model", best_match_model)
-    workflow.add_node("quality_checking_model", quality_checking_model)
-    workflow.add_node("save_assignment", save_assignment)
+    workflow.add_node("db_check", with_schema_logging("db_check", check_database_updates))
+    workflow.add_node("profile_extractor", with_schema_logging("profile_extractor", profile_extractor))
+    workflow.add_node("logs_extractor", with_schema_logging("logs_extractor", logs_extractor))
+    workflow.add_node("next_action_model", with_schema_logging("next_action_model", next_action_model))
+    workflow.add_node("skill_allocator", with_schema_logging("skill_allocator", skill_allocator))
+    workflow.add_node("quest_allocator", with_schema_logging("quest_allocator", quest_allocator))
+    workflow.add_node("best_match_model", with_schema_logging("best_match_model", best_match_model))
+    workflow.add_node("quality_checking_model", with_schema_logging("quality_checking_model", quality_checking_model))
+    workflow.add_node("save_assignment", with_schema_logging("save_assignment", save_assignment))
 
     # 2. Define Entry Point and Edges
     workflow.set_entry_point("db_check")

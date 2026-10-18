@@ -4,6 +4,7 @@ import json
 import requests
 from gradio_client import Client
 from ..state import AgentState
+from gradio_response import parse_gradio_json
 
 def skill_enhancement(state: AgentState) -> AgentState:
     print("--- SKILL ENHANCEMENT: Merging duplicate skills via Hugging Face Client ---")
@@ -37,12 +38,50 @@ def skill_enhancement(state: AgentState) -> AgentState:
     }
 
     client = Client("AO0789/ai-skill-sense-engine", token=hf_token)
-    result_str = client.predict(
+    result = client.predict(
         json.dumps(cluster_payload),
         api_name="/run_enhancement",
     )
-    if not result_str:
-        raise RuntimeError("Skill enhancement model returned an empty result.")
+    parsed_result = parse_gradio_json(result, "/run_enhancement")
+    required_fields = {
+        "skill_id",
+        "skill_type",
+        "skill_title",
+        "skill_intro",
+        "skill_holder_id",
+        "related_quest_id",
+    }
+    missing_fields = required_fields.difference(parsed_result)
+    if missing_fields:
+        raise RuntimeError(
+            "Gradio endpoint /run_enhancement response is missing fields: "
+            + ", ".join(sorted(missing_fields))
+        )
+    if parsed_result["skill_type"] not in {
+        "Technical",
+        "Fitness",
+        "Finance",
+        "Communication",
+    }:
+        raise RuntimeError(
+            "Gradio endpoint /run_enhancement returned an invalid skill_type."
+        )
+    for field in ("skill_id", "skill_title", "skill_intro"):
+        if not isinstance(parsed_result[field], str) or not parsed_result[field].strip():
+            raise RuntimeError(
+                f"Gradio endpoint /run_enhancement field '{field}' "
+                "must be a non-empty string."
+            )
+    for field in ("skill_holder_id", "related_quest_id"):
+        value = parsed_result[field]
+        if not isinstance(value, list) or not all(
+            isinstance(item, str) for item in value
+        ):
+            raise RuntimeError(
+                f"Gradio endpoint /run_enhancement field '{field}' "
+                "must be a list of strings."
+            )
+    result_str = json.dumps(parsed_result)
 
     return {
         "content": result_str,

@@ -3,6 +3,7 @@ from .nodes.fetch_skill import fetch_skill
 from .nodes.quest_maker import quest_maker
 from .nodes.save_datapool import save_datapool
 from .state import QuestMakerState
+from workflow_logging import with_schema_logging
 
 
 def should_continue_saving(state: QuestMakerState) -> str:
@@ -17,9 +18,9 @@ def should_continue_saving(state: QuestMakerState) -> str:
 def create_quest_maker_workflow():
   workflow = StateGraph(QuestMakerState)
 
-  workflow.add_node("fetch_skill", fetch_skill)
-  workflow.add_node("quest_maker", quest_maker)
-  workflow.add_node("save_datapool", save_datapool)
+  workflow.add_node("fetch_skill", with_schema_logging("fetch_skill", fetch_skill))
+  workflow.add_node("quest_maker", with_schema_logging("quest_maker", quest_maker))
+  workflow.add_node("save_datapool", with_schema_logging("save_datapool", save_datapool))
 
   workflow.set_entry_point("fetch_skill")
   workflow.add_edge("fetch_skill", "quest_maker")

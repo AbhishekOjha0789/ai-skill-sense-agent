@@ -7,16 +7,17 @@ from .nodes.content_analyzer import content_analyzer
 from .nodes.quality_scorer import quality_scorer
 from .nodes.feedback_generator import feedback_generator
 from .nodes.retry_decision import retry_decision
+from workflow_logging import with_schema_logging
 
 def create_quality_analyzer_workflow():
     workflow = StateGraph(QualityAnalysisState)
     
     # 1. Add Nodes
-    workflow.add_node("schema_validator", schema_validator)
-    workflow.add_node("content_analyzer", content_analyzer)
-    workflow.add_node("quality_scorer", quality_scorer)
-    workflow.add_node("feedback_generator", feedback_generator)
-    workflow.add_node("retry_decision", retry_decision)
+    workflow.add_node("schema_validator", with_schema_logging("schema_validator", schema_validator))
+    workflow.add_node("content_analyzer", with_schema_logging("content_analyzer", content_analyzer))
+    workflow.add_node("quality_scorer", with_schema_logging("quality_scorer", quality_scorer))
+    workflow.add_node("feedback_generator", with_schema_logging("feedback_generator", feedback_generator))
+    workflow.add_node("retry_decision", with_schema_logging("retry_decision", retry_decision))
     
     # 2. Define Entry Point and Edges
     workflow.set_entry_point("schema_validator")

@@ -14,6 +14,7 @@ from .nodes.skill_maker import skill_maker
 from .nodes.duplicate_detector import duplicate_detector
 from .nodes.skill_enhancement import skill_enhancement
 from .nodes.datapool import datapool
+from workflow_logging import with_schema_logging
 
 # def route_after_link_lister(state: AgentState) -> str:
 #     """Route based on whether the URL has already been visited."""
@@ -43,15 +44,15 @@ def create_extractor_workflow():
     # 1. Register all nodes in the graph
     # workflow.add_node("link_lister", link_lister)
     # workflow.add_node("url_list", url_list)
-    workflow.add_node("classifier", classifier)
-    workflow.add_node("image_crawler", image_crawler)
-    workflow.add_node("audio_crawler", audio_crawler)
-    workflow.add_node("web_crawler", web_crawler)
-    workflow.add_node("cleaning_model", cleaning_model)
-    workflow.add_node("skill_maker", skill_maker)
-    workflow.add_node("duplicate_detector", duplicate_detector)
-    workflow.add_node("skill_enhancement", skill_enhancement)
-    workflow.add_node("datapool", datapool)
+    workflow.add_node("classifier", with_schema_logging("classifier", classifier))
+    workflow.add_node("image_crawler", with_schema_logging("image_crawler", image_crawler))
+    workflow.add_node("audio_crawler", with_schema_logging("audio_crawler", audio_crawler))
+    workflow.add_node("web_crawler", with_schema_logging("web_crawler", web_crawler))
+    workflow.add_node("cleaning_model", with_schema_logging("cleaning_model", cleaning_model))
+    workflow.add_node("skill_maker", with_schema_logging("skill_maker", skill_maker))
+    workflow.add_node("duplicate_detector", with_schema_logging("duplicate_detector", duplicate_detector))
+    workflow.add_node("skill_enhancement", with_schema_logging("skill_enhancement", skill_enhancement))
+    workflow.add_node("datapool", with_schema_logging("datapool", datapool))
     
     # 2. Set the starting entry point
     workflow.set_entry_point("classifier")
