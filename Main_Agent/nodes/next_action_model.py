@@ -17,12 +17,12 @@ JOB_TIMEOUT = float(os.getenv("GRADIO_JOB_TIMEOUT", "420"))
 MAX_ATTEMPTS = int(os.getenv("GRADIO_MAX_ATTEMPTS", "2"))
 MAX_LOGS = int(os.getenv("NEXT_ACTION_MAX_LOGS", "10"))  # fewer logs = faster CPU inference
 
-# Only the fields present in the training data
+# Only what the decision needs. email/user_id are not sent to the Space.
 PROFILE_FIELDS = (
-    "user_id", "username", "email", "age", "gender", "interests", "skills",
-    "active_quests", "completed_quest", "failed_quests", "summary",
+    "age", "interests", "skills", "active_quests", "completed_quest",
+    "failed_quests", "summary", "occupation", "experience", "education_status",
 )
-LOG_FIELDS = ("user_id", "log_id", "log_desc", "action_required", "timestamp")
+LOG_FIELDS = ("log_desc", "action_required", "timestamp")
 
 _client = None
 _client_lock = threading.Lock()
@@ -46,23 +46,13 @@ def _get_client(force_new: bool = False) -> Client:
 
 
 def _validate(parsed: dict) -> dict:
-    required_fields = {"action", "skills", "quests", "keywords"}
-    missing_fields = required_fields.difference(parsed)
-    if missing_fields:
-        raise RuntimeError(
-            "Next Action Gradio response is missing fields: "
-            + ", ".join(sorted(missing_fields))
-        )
     if parsed.get("action") not in {"Skill", "Quest", "None"}:
         raise RuntimeError(
             "Next Action Gradio response must include action as 'Skill', 'Quest', or 'None'."
         )
-    for field in ("skills", "quests", "keywords"):
-        value = parsed[field]
-        if not isinstance(value, list) or not all(isinstance(i, str) for i in value):
-            raise RuntimeError(
-                f"Next Action Gradio response field '{field}' must be a list of strings."
-            )
+    kws = parsed.get("keywords")
+    if not isinstance(kws, list) or not all(isinstance(k, str) for k in kws):
+        raise RuntimeError("Next Action Gradio response field 'keywords' must be a list of strings.")
     return parsed
 
 
@@ -82,50 +72,27 @@ def _call_space(input_text: str) -> dict:
     raise RuntimeError(f"next_action_model failed after {MAX_ATTEMPTS} attempts") from last_exc
 
 
-def _only_pool(items, pool) -> list:
-    """Drop IDs the model invented: the training task is 'IDs present in the input'."""
-    pool = set(pool)
-    return [i for i in items if i in pool]
-
-
 def next_action_model(state: MainAgentState) -> MainAgentState:
     print("--- NEXT ACTION MODEL: Calling Gradio client API on Hugging Face ---")
 
     profile = state.get("profile") or {}
     logs = (state.get("logs") or [])[:MAX_LOGS]
 
-    user_profile = {k: profile.get(k) for k in PROFILE_FIELDS if k in profile}
-    user_logs = [
-        {k: l.get(k) for k in LOG_FIELDS if k in l} for l in logs if isinstance(l, dict)
-    ]
-
-    # TODO: this should be the full pool of available skill/quest IDs from your DB,
-    # not the user's own items. See note below.
-    pool = state.get("available_pool_identifiers") or {
-        "skill_ids": profile.get("skills") or [],
-        "quest_ids": profile.get("active_quests") or [],
-    }
-
     input_context = {
-        "user_profile": user_profile,
-        "user_logs": user_logs,
-        "available_pool_identifiers": pool,
+        "user_profile": {k: profile.get(k) for k in PROFILE_FIELDS if k in profile},
+        "user_logs": [
+            {k: l.get(k) for k in LOG_FIELDS if k in l} for l in logs if isinstance(l, dict)
+        ],
     }
-    input_text = json.dumps(input_context, default=str)  # default separators, as in training
+    input_text = json.dumps(input_context, default=str)
 
     try:
         parsed = _call_space(input_text)
     except Exception as exc:
+        # The workflow ends on "None", so a Space outage looks like "no action needed".
         print(f"[next_action_model] giving up, returning action='None': {exc!r}")
-        return {"action": "None", "skill_ids": [], "quest_ids": [], "keywords": []}
+        return {"action": "None", "keywords": []}
 
-    skills = _only_pool(parsed["skills"], pool.get("skill_ids") or [])
-    quests = _only_pool(parsed["quests"], pool.get("quest_ids") or [])
-
-    print("Successfully determined next action via Gradio API.")
-    return {
-        "action": parsed["action"],
-        "skill_ids": skills,
-        "quest_ids": quests,
-        "keywords": parsed["keywords"],
-    }
+    print(f"Next action decided: {parsed['action']} (needs_skill={parsed.get('needs_skill')}, "
+          f"needs_quest={parsed.get('needs_quest')})")
+    return {"action": parsed["action"], "keywords": parsed["keywords"]}
