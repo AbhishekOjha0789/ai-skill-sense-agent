@@ -6,7 +6,7 @@ from google.genai import types
 from ..state import AgentState
 
 def skill_maker(state: AgentState) -> AgentState:
-    print("--- SKILL MAKER: Generating skill candidate via Gemini 3.5 Flash ---")
+    print("--- SKILL MAKER: Generating skill candidate via Gemini 3.1 Flash Lite ---")
     cleaned_content = state.get("content", "")
     
     # Retrieve API key securely from Render environment variables
@@ -31,9 +31,9 @@ def skill_maker(state: AgentState) -> AgentState:
     """
     
     try:
-        # Use Structured Outputs via Gemini API with the 3.5 Flash model
+        # Use Structured Outputs via Gemini API with the 3.1 Flash Lite model
         response = client.models.generate_content(
-            model='gemini-3.5-flash',
+            model='gemini-3.1-flash-lite',
             contents=prompt,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
@@ -55,7 +55,7 @@ def skill_maker(state: AgentState) -> AgentState:
         
         # Load the whole JSON response string directly into content
         skill_json_string = response.text
-        print("Successfully generated skill candidate JSON via Gemini 3.5 Flash.")
+        print("Successfully generated skill candidate JSON via Gemini 3.1 Flash Lite.")
         
         skill_data = json.loads(skill_json_string)
         
