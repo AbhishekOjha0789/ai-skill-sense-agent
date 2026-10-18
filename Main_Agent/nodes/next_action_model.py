@@ -26,36 +26,57 @@ def next_action_model(state: MainAgentState) -> MainAgentState:
 
     input_text = json.dumps(input_context)
     hf_token = os.environ.get("HF_TOKEN")
-    
-    # Default fallback values
-    action_result = "None"
-    skills_result = []
-    quests_result = []
-    keywords_result = []
+    client = Client("AO0789/ai-skill-sense-engine", token=hf_token)
+    result = client.predict(
+        text=input_text,
+        api_name="/run_next_action",
+    )
 
-    try:
-        # Initialize the Gradio client for your space
-        client = Client("AO0789/ai-skill-sense-engine", token=hf_token)
-        
-        # Call the specific endpoint matching your Gradio space definition
-        result_str = client.predict(
-            text=input_text,
-            api_name="/run_next_action",
+    if isinstance(result, str):
+        try:
+            parsed_result = json.loads(result)
+        except json.JSONDecodeError as exc:
+            raise RuntimeError(
+                "Next Action Gradio endpoint returned invalid JSON "
+                f"(line {exc.lineno}, column {exc.colno})."
+            ) from exc
+    elif isinstance(result, dict):
+        parsed_result = result
+    else:
+        raise RuntimeError(
+            "Next Action Gradio endpoint returned an unsupported response "
+            f"type: {type(result).__name__}."
         )
-        
-        # Parse the JSON string response matching your model output format
-        # e.g., {"user_id": "...", "skills": [...], "quests": [...], "action": "...", "keywords": [...]}
-        if result_str:
-            parsed_result = json.loads(result_str)
-            action_result = parsed_result.get("action", "None")
-            skills_result = parsed_result.get("skills", [])
-            quests_result = parsed_result.get("quests", [])
-            keywords_result = parsed_result.get("keywords", [])
-            print("Successfully determined next action via Gradio API.")
-            
-    except Exception as e:
-        print(f"Error communicating with Gradio Next Action client: {e}")
-        
+
+    if not isinstance(parsed_result, dict):
+        raise RuntimeError(
+            "Next Action Gradio endpoint must return a JSON object."
+        )
+
+    action_result = parsed_result.get("action")
+    if action_result not in {"Skill", "Quest", "None"}:
+        raise RuntimeError(
+            "Next Action Gradio response must include action as "
+            "'Skill', 'Quest', or 'None'."
+        )
+
+    skills_result = parsed_result.get("skills", [])
+    quests_result = parsed_result.get("quests", [])
+    keywords_result = parsed_result.get("keywords", [])
+    for field, value in (
+        ("skills", skills_result),
+        ("quests", quests_result),
+        ("keywords", keywords_result),
+    ):
+        if not isinstance(value, list) or not all(
+            isinstance(item, str) for item in value
+        ):
+            raise RuntimeError(
+                f"Next Action Gradio response field '{field}' must be "
+                "a list of strings."
+            )
+
+    print("Successfully determined next action via Gradio API.")
     return {
         "action": action_result,
         "skill_ids": skills_result,
