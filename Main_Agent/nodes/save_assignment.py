@@ -2,6 +2,7 @@ import os
 
 import requests
 
+from .activity_logger import post_activity_log
 from ..state import MainAgentState
 
 
@@ -28,6 +29,14 @@ def save_assignment(state: MainAgentState) -> MainAgentState:
     )
     response.raise_for_status()
     result = response.json()
+
+    assignment_name = "skill" if assignment_type == "Skill" else "quest"
+    post_activity_log(
+        user_id=user_id,
+        activity_type=f"{assignment_name}_assignment",
+        log_desc=f"Assigned {assignment_name} {item_id}.",
+        event_id=f"assignment:{assignment_name}:{item_id}",
+    )
 
     return {
         "assignment_status": result["status"],

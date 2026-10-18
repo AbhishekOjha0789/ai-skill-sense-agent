@@ -38,6 +38,3 @@ def create_quality_analyzer_workflow():
     )
     
     return workflow.compile()
-
-# Compiled application ready to be invoked
-app_workflow = create_quality_analyzer_workflow()
