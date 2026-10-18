@@ -33,6 +33,10 @@ def next_action_model(state: MainAgentState) -> MainAgentState:
     )
 
     if isinstance(result, str):
+        if result.startswith("CPU Inference Error:"):
+            raise RuntimeError(
+                f"Next Action Hugging Face inference failed: {result}"
+            )
         try:
             parsed_result = json.loads(result)
         except json.JSONDecodeError as exc:

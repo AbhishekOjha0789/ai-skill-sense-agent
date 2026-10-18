@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from dotenv import load_dotenv
 from typing import Literal
 from fastapi import Depends, FastAPI, HTTPException
@@ -16,6 +17,7 @@ from security import require_agent_secret
 # from agents.Quality_Analyzer.workflow import create_quality_analyzer_workflow
 
 app = FastAPI(title="AI Skill Sense Agents API", version="1.0")
+logger = logging.getLogger(__name__)
 
 
 # Unified payload schema for Main Agent triggers
@@ -80,6 +82,11 @@ async def trigger_main_agent(
     }
 
   except Exception as e:
+    logger.exception(
+        "Main Agent workflow failed for update_id=%s user_id=%s",
+        payload.update_id,
+        payload.user_id,
+    )
     raise HTTPException(status_code=500, detail=str(e))
 
 
