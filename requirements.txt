@@ -1,24 +1,16 @@
-# --- Hugging Face & ML Inference (For testing fine-tuned adapters locally) ---
-torch
-transformers
-peft
-accelerate
-safetensors
-datasets
-
-# --- Backend & Database Stack (FastAPI + PostgreSQL as per architecture specs) ---
+# --- Agent API and workflows ---
 fastapi
 uvicorn
 pydantic
 langgraph
-sqlalchemy
-psycopg2-binary
 gradio_client
 google-genai
 beautifulsoup4
 Pillow
 pytesseract
 openai-whisper
+httpx
+typing_extensions
 
 # --- Utilities & Environment Management ---
 requests
