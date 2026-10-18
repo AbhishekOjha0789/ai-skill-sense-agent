@@ -28,7 +28,7 @@ def next_action_model(state: MainAgentState) -> MainAgentState:
     hf_token = os.environ.get("HF_TOKEN")
     client = Client("AO0789/ai-skill-sense-engine", token=hf_token)
     result = client.predict(
-        text=input_text,
+        input_text,
         api_name="/run_next_action",
     )
 

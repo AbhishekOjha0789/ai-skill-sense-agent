@@ -19,7 +19,7 @@ def cleaning_model(state: AgentState) -> AgentState:
         
         # Call the specific cleaning endpoint
         result_str = client.predict(
-            text=raw_content,
+            raw_content,
             api_name="/run_cleaning",
         )
         
