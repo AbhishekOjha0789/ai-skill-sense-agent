@@ -93,11 +93,7 @@ def next_action_model(state: MainAgentState) -> MainAgentState:
         print(f"[next_action_model] giving up, returning action='None': {exc!r}")
         return {"action": "None", "keywords": []}
 
-    action = (
-        "Quest"
-        if parsed.get("needs_quest") is True
-        else parsed["action"]
-    )
+    action = parsed["action"]
     print(
         f"Next action routed: {action} "
         f"(model_action={parsed['action']}, "
